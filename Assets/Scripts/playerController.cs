@@ -3,9 +3,11 @@ using System.Collections;
 
 public class playerController : MonoBehaviour {
 
-	public float moveSpeed = 3;		// Against OOP, I know; but public variables can be modified in Unity's editor. Awesome!
+	public float moveSpeed = 4;		// Against OOP, I know; but public variables can be modified in Unity's editor. Awesome!
+	public float maxMoveSpeed = 1; // Make sure we can't swim too fast!
 	public float xMove, yMove = 0;	// These variables are changed every frame, as a result of Update()
 	public Vector2 movementVector;  // Also changed as a result of Update();
+	public GUIText text;
 
 	// Use this for initialization
 	void Start () {
@@ -27,22 +29,32 @@ public class playerController : MonoBehaviour {
 		this.xMove = Input.GetAxis("Horizontal") * this.moveSpeed;  
 		this.yMove = Input.GetAxis("Vertical") * this.moveSpeed;
 
-		if ( xMove == 0 && yMove != 0 ) {
-			//yMove *= Time.deltaTime;				  // Delta-timing essentially makes sure we move at a rate constant versus time
-			movementVector = new Vector2( 0, yMove ); // We only care about yMove
-		}
-		else if ( xMove != 0 && yMove == 0) {
-			//xMove *= Time.deltaTime;				  // Delta-timing, or "frame-independent" logic is easy to implement in Unity!
+		if ( xMove != 0 && yMove == 0) {
 			movementVector = new Vector2( xMove, 0 ); // We only care about xMove
 		}
-		else {
-			movementVector = new Vector2( 0, 0 ); // For now, move horizontally or vertically. Otherwise, don't move.
-		}
 
-		// Now that we have the direction we'd like to move in, lets set our velocity to this vector
+		if ( Input.GetButtonDown( "Jump" )) {
+			rigidbody2D.AddForce( new Vector2( 0, 500 ) );
+		}
 
 		rigidbody2D.AddForce( movementVector );
 
+		// Clamp velocity
+
+		float xDir, yDir;
+		xDir = rigidbody2D.velocity.x / rigidbody2D.velocity.magnitude;
+		yDir = rigidbody2D.velocity.y / rigidbody2D.velocity.magnitude;
+		rigidbody2D.velocity.Set( xDir * maxMoveSpeed, yDir * maxMoveSpeed );
+
+		if ( text ) {
+			text.text = "Velocity = " + rigidbody2D.velocity;
+		}
+
+	}
+
+	void OnGUI()
+	{
+		GUILayout.TextArea("Velocity = " + rigidbody2D.velocity);
 	}
 
 	/**
